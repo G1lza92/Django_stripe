@@ -29,13 +29,14 @@
               {% if order.paid != True %}
                     <div class="row mt-3">
                         <div class="col-sm-12">
-                            <a href="{% url 'app:buy_order' pk=order.id %}" class="btn btn-info ml-auto">Pay for order</a>
+                            <a href="{% url 'app:item_list' %}" class="btn btn-success ml-auto">Add more items</a>
+                            <a href="{% url 'app:buy' pk=order.id %}" class="btn btn-info ml-auto">Pay for order</a>
                         </div>
                     </div>
               {% endif %}
                 <div class="row mt-3">
                   <div class="col-sm-12">
-                      <p class="card-text"> Total price: {{ order.total_price }}</p>
+                      <p class="card-text"> Total price: {{ order.get_total_cost }}</p>
                   </div>
                 </div>
               {% else %}

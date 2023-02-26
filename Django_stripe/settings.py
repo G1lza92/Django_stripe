@@ -23,7 +23,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app',
     'users',
-    'core',
 ]
 
 MIDDLEWARE = [
@@ -106,3 +105,5 @@ AUTH_USER_MODEL = 'users.User'
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+
+TAX_VALUE = 7.25

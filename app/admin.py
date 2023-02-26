@@ -11,7 +11,6 @@ class ItemAdmin(admin.ModelAdmin):
         'name',
         'description',
         'price',
-        # 'currency',
     )
     list_filter = (
         'name',

@@ -31,7 +31,7 @@ def item_detail(request, pk):
         'item': item,
         'in_order': in_order,
         'quantity': quantity,
-        'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY
+        'order': order,
     }
     return render(request, 'item_detail.html', context)
 
@@ -50,7 +50,6 @@ def order_detail(request, pk):
     context = {
         'order': order,
         'items_in_order': items_in_order,
-        'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY
     }
     if request.user != order.user:
         return redirect('app:orders_list')
@@ -66,20 +65,16 @@ def add_to_order(request, pk):
     else:
         order = Order.objects.create(user=request.user)
         request.session['order_id'] = order.id
-    if order.total_price is None:
-        order.total_price = 0
     order_item, created = ItemsInOrder.objects.get_or_create(
         order=order,
-        items=item,
+        item=item,
     )
     if not created:
         order_item.quantity += 1
         order_item.save()
     else:
-        order.item.add(item)
-    order.total_price += item.price
-    order.save()
-    request.session['order_id'] = order.id
+        order.items.add(item)
+        order.save()
     return redirect(request.META.get('HTTP_REFERER', 'app:item_detail'))
 
 
@@ -87,19 +82,29 @@ def add_to_order(request, pk):
 def delete_from_order(request, pk):
     item = get_object_or_404(Item, id=pk)
     order = Order.objects.get(user=request.user, paid=False)
-    order_item = ItemsInOrder.objects.get(order=order, items=item)
+    order_item = ItemsInOrder.objects.get(order=order, item=item)
     if order_item.quantity > 1:
         order_item.quantity -= 1
         order_item.save()
     else:
         order_item.delete()
-    order.total_price -= item.price
-    order.save()
+        if not order.items.exists():
+            order.delete()
+            return redirect('app:orders_list')
     return redirect(request.META.get('HTTP_REFERER', 'app:order_detail'))
 
 
 def stripe_session(request, order):
     stripe.api_key = settings.STRIPE_SECRET_KEY
+    tax = stripe.TaxRate.create(
+        display_name="Sales Tax",
+        inclusive=False,
+        percentage=settings.TAX_VALUE,
+        country="US",
+        state="CA",
+        jurisdiction="US - CA",
+        description="CA Sales Tax",
+    )
     checkout_session = stripe.checkout.Session.create(
         customer_email=request.user.email,
         payment_method_types=['card'],
@@ -113,6 +118,7 @@ def stripe_session(request, order):
                         'description': i.item.description,
                     },
                 },
+                'tax_rates': [tax.id],
                 'quantity': i.quantity,
             } for i in order.itemsinorder_set.all()],
         mode='payment',
@@ -126,24 +132,31 @@ def stripe_session(request, order):
     return checkout_session
 
 
-@csrf_exempt
-def buy_item(request, pk):
-    item = get_object_or_404(Item, id=pk)
-    if request.user.is_authenticated:
-        order = Order.objects.create(user=request.user)
-        order.items.add(item)
-        order.total_price = item.price
-        order.save()
-    checkout_session = stripe_session(request, order)
-    return redirect(checkout_session.url)
+# @csrf_exempt
+# def buy_item(request, pk):
+#     item = get_object_or_404(Item, id=pk)
+#     if request.user.is_authenticated:
+#         order = Order.objects.create(user=request.user)
+#         order.items.add(item)
+#         order.total_price = item.price
+#         order.save()
+#         checkout_session = stripe_session(request, order)
+#         return redirect(checkout_session.url)
+#     else:
+#         return redirect('users:login')
 
 
 @csrf_exempt
 def pay_for_order(request, pk):
     order = get_object_or_404(Order, user=request.user, id=pk)
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    checkout_session = stripe_session(request, order)
-    return redirect(checkout_session.url)
+    order.total_price = order.get_total_cost()
+    order.save()
+    if request.user.is_authenticated:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        checkout_session = stripe_session(request, order)
+        return redirect(checkout_session.url)
+    else:
+        return redirect('users:login')
 
 
 class SuccessView(TemplateView):

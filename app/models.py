@@ -4,12 +4,6 @@ from django.utils.html import format_html_join
 
 from users.models import User
 
-CURRENCY = (
-        ('USD', 'US Dollars'),
-        ('EUR', 'Euros'),
-        ('GBP', 'Great Britain Pound'),
-    )
-
 
 class Item(models.Model):
     """ Item model """
@@ -23,12 +17,6 @@ class Item(models.Model):
         'Item price',
         validators=[MinValueValidator(0.01, 'Price cannot be 0 or negative')],
     )
-    # currency = models.CharField( # Новое поле, миграций нет
-    #     'Item currency',
-    #     max_length=3,
-    #     default='USD',
-    #     choices=CURRENCY,
-    # )
     pub_date = models.DateTimeField(
         'Publication date',
         auto_now_add=True,
@@ -47,8 +35,7 @@ class Order(models.Model):
     """ Order model """
     user = models.ForeignKey(
         User,
-        blank=True,
-        null=True,
+        null=False,
         on_delete=models.CASCADE,
     )
     items = models.ManyToManyField(
@@ -72,16 +59,20 @@ class Order(models.Model):
     created_on = models.DateTimeField(
         auto_now_add=True,
     )
+    updated = models.DateTimeField(
+        auto_now_add=True,
+    )
 
     def __str__(self):
         return f"Order #{self.id}"
 
     def get_total_cost(self):
-        items_in_order = ItemsInOrder.objects.filter(order=self)
+        items_in_order = ItemsInOrder.objects.filter(order=self).select_related('item')
         return sum(item_in_order.item.price * item_in_order.quantity for item_in_order in items_in_order)
+    get_total_cost.short_description = 'Total price'
 
     def get_items(self):
-        items_in_order = ItemsInOrder.objects.filter(order=self)
+        items_in_order = ItemsInOrder.objects.filter(order=self).select_related('item')
         return format_html_join(
             '\n',
             '<li>{} (quantity: {})</li>',

@@ -24,14 +24,14 @@
                             </div>
                         </td>
                         <td>{{ order.get_items }}</td>
-                        <td>{{ order.total_price }}</td>
+                        <td>Price: {{ order.get_total_cost }}</td>
                         <td>
                             {% if order.paid %}
                                 <b class="text-success">Success</b>
                             {% else %}
                                 <b class="text-danger">Not paid</b>
                                 <div class="card-footer d-flex">
-                                    <a href="{% url 'app:buy_order' pk=order.id %}" class="btn btn-info ml-auto">Pay for order</a>
+                                    <a href="{% url 'app:buy' pk=order.id %}" class="btn btn-info ml-auto">Pay for order</a>
                                 </div>
                             {% endif %}
                         </td>
