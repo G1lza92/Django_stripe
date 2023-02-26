@@ -24,7 +24,7 @@ class User(AbstractUser):
     )
     password = models.CharField(
         'Password',
-        max_length=30,
+        max_length=255,
     )
 
     class Meta:

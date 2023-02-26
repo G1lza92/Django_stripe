@@ -81,8 +81,10 @@ def add_to_order(request, pk):
 @login_required
 def delete_from_order(request, pk):
     item = get_object_or_404(Item, id=pk)
-    order = Order.objects.get(user=request.user, paid=False)
-    order_item = ItemsInOrder.objects.get(order=order, item=item)
+    order = Order.objects.filter(user=request.user, paid=False).first()
+    if not order:
+        return redirect(request.META.get('HTTP_REFERER', 'app:orders_list'))
+    order_item = get_object_or_404(ItemsInOrder, order=order, item=item)
     if order_item.quantity > 1:
         order_item.quantity -= 1
         order_item.save()
@@ -91,7 +93,7 @@ def delete_from_order(request, pk):
         if not order.items.exists():
             order.delete()
             return redirect('app:orders_list')
-    return redirect(request.META.get('HTTP_REFERER', 'app:order_detail'))
+    return redirect(request.META.get('HTTP_REFERER', 'app:orders_list'))
 
 
 def stripe_session(request, order):
@@ -130,20 +132,6 @@ def stripe_session(request, order):
     order.stripe_session_id = checkout_session.id
     order.save()
     return checkout_session
-
-
-# @csrf_exempt
-# def buy_item(request, pk):
-#     item = get_object_or_404(Item, id=pk)
-#     if request.user.is_authenticated:
-#         order = Order.objects.create(user=request.user)
-#         order.items.add(item)
-#         order.total_price = item.price
-#         order.save()
-#         checkout_session = stripe_session(request, order)
-#         return redirect(checkout_session.url)
-#     else:
-#         return redirect('users:login')
 
 
 @csrf_exempt

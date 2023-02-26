@@ -148,3 +148,6 @@ dmypy.json
 # env file
 .env
 
+#db compose
+db.yaml
+
