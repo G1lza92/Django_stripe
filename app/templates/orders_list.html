@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-center">Orders history</h1>
+<div class="container">
+    {% if orders %}
+    <table class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Orders</th>
+                    <th>Items</th>
+                    <th>Total price</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>
+                            <p>Order №</p>{{ order.id }}
+                            <div class="card-footer d-flex">
+                                <a href="{% url 'app:order_detail' pk=order.id %}" class="btn btn-success ml-auto">Order details</a>
+                            </div>
+                        </td>
+                        <td>{{ order.get_items }}</td>
+                        <td>{{ order.total_price }}</td>
+                        <td>
+                            {% if order.paid %}
+                                <b class="text-success">Success</b>
+                            {% else %}
+                                <b class="text-danger">Not paid</b>
+                                <div class="card-footer d-flex">
+                                    <a href="{% url 'app:buy_order' pk=order.id %}" class="btn btn-info ml-auto">Pay for order</a>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.created_on }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-info">
+            Payment history is empty.
+        </div>
+        {% endif %}
+
+    </div>
+{% endblock content %}

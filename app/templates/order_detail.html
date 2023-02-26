@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="text-center">Order Detail</h1>
+    <div class="container">
+        {% if order %}
+          <div class="row">
+              {% for i in items_in_order %}
+                <div class="col-sm-4">
+                    <div class="card">
+                        <img class="card-img-top" src="https://dummyimage.com/200x150.jpg?text={{ i.item.name }}" alt="">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ i.item.name }}</h4>
+                            <p class="card-text"> price: {{ i.item.price }}</p>
+                            <p class="card-text"> quantity: {{ i.quantity }}</p>
+                            {% if order.paid == True %}
+                                <p class="card-text"> description: {{ i.item.description }}</p>
+                            {% endif %}
+                        </div>
+                        {% if order.paid != True %}
+                            <div class="card-footer d-flex">
+                                <a href="{% url 'app:add_to_order' pk=i.item.id %}" class="btn btn-success ml-auto">Add to order</a>
+                                <a href="{% url 'app:delete_from_order' pk=i.item.id %}" class="btn btn-danger ml-auto">Delete from order</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+              {% endfor %}
+              {% if order.paid != True %}
+                    <div class="row mt-3">
+                        <div class="col-sm-12">
+                            <a href="{% url 'app:buy_order' pk=order.id %}" class="btn btn-info ml-auto">Pay for order</a>
+                        </div>
+                    </div>
+              {% endif %}
+                <div class="row mt-3">
+                  <div class="col-sm-12">
+                      <p class="card-text"> Total price: {{ order.total_price }}</p>
+                  </div>
+                </div>
+              {% else %}
+                <div class="alert alert-info text-center mt-5">
+                    The order list is empty. Please add some products first.
+                </div>
+        {% endif %}
+        </div>
+    </div>
+
+
+{% endblock content %}

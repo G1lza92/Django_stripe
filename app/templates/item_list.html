@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-center">Item List</h1>
+<div class="container">
+    {% if items %}
+    <div class="row">
+        {% for item in items %}
+        <div class="col-sm-4">
+            <div class="card">
+                <img class="card-img-top" src="https://dummyimage.com/200x150.jpg?text={{ item.name }}" alt="">
+                <div class="card-body">
+                    <h4 class="card-title">{{ item.name }}</h4>
+                    <p class="card-text">price: {{ item.price }}</p>
+                </div>
+                <div class="card-footer d-flex">
+                    <a href="{% url 'app:item_detail' pk=item.id %}" class="btn btn-success ml-auto">Item details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center mt-5">
+        The product list is empty. Please add some products first.
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}
