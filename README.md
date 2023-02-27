@@ -2,6 +2,19 @@
 Интернет магазин на Django с Stripe SDK
 >
 Организован интернет магазин, с переходом и оплатой через Stripe
+>
+https://g1lza.pythonanywhere.com/
+```
+Админ зона:
+
+login: adminsite
+password: adminsite
+
+Тестовый Юзер:
+
+login: Test
+password: zxcv0987
+```
 ## Установка:
 ### После клонирования репрозитория:
 * Установаите виртуальное окружение
