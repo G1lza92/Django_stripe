@@ -13,9 +13,15 @@
                     <h4 class="card-title">{{ item.name }}</h4>
                     <p class="card-text">price: {{ item.price }}</p>
                 </div>
+                {% if request.user.is_authenticated %}
                 <div class="card-footer d-flex">
                     <a href="{% url 'app:item_detail' pk=item.id %}" class="btn btn-success ml-auto">Item details</a>
                 </div>
+                {% else %}
+                <div class="card-footer d-flex">
+                    <a href="{% url 'users:login' %}" class="btn btn-info ml-8">Log in to buy</a>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
